@@ -25,7 +25,6 @@ import org.greenrobot.greendao.DaoLog;
 import org.greenrobot.greendao.Property;
 import org.greenrobot.greendao.annotation.apihint.Experimental;
 import org.greenrobot.greendao.internal.SqlUtils;
-import org.greenrobot.greendao.rx.RxQuery;
 import org.greenrobot.greendao.rx2.Rx2Query;
 
 import java.util.ArrayList;
@@ -48,10 +47,14 @@ import java.util.List;
  */
 public class QueryBuilder<T> {
 
-    /** Set to true to debug the SQL. */
+    /**
+     * Set to true to debug the SQL.
+     */
     public static boolean LOG_SQL;
 
-    /** Set to see the given values. */
+    /**
+     * Set to see the given values.
+     */
     public static boolean LOG_VALUES;
     private final WhereCollector<T> whereCollector;
 
@@ -66,10 +69,14 @@ public class QueryBuilder<T> {
     private Integer offset;
     private boolean distinct;
 
-    /** stored with a leading space */
+    /**
+     * stored with a leading space
+     */
     private String stringOrderCollation;
 
-    /** For internal use by greenDAO only. */
+    /**
+     * For internal use by greenDAO only.
+     */
     public static <T2> QueryBuilder<T2> internalCreate(AbstractDao<T2, ?> dao) {
         return new QueryBuilder<T2>(dao);
     }
@@ -95,7 +102,9 @@ public class QueryBuilder<T> {
         }
     }
 
-    /** Use a SELECT DISTINCT to avoid duplicate entities returned, e.g. when doing joins. */
+    /**
+     * Use a SELECT DISTINCT to avoid duplicate entities returned, e.g. when doing joins.
+     */
     public QueryBuilder<T> distinct() {
         distinct = true;
         return this;
@@ -215,13 +224,17 @@ public class QueryBuilder<T> {
         return join;
     }
 
-    /** Adds the given properties to the ORDER BY section using ascending order. */
+    /**
+     * Adds the given properties to the ORDER BY section using ascending order.
+     */
     public QueryBuilder<T> orderAsc(Property... properties) {
         orderAscOrDesc(" ASC", properties);
         return this;
     }
 
-    /** Adds the given properties to the ORDER BY section using descending order. */
+    /**
+     * Adds the given properties to the ORDER BY section using descending order.
+     */
     public QueryBuilder<T> orderDesc(Property... properties) {
         orderAscOrDesc(" DESC", properties);
         return this;
@@ -238,7 +251,9 @@ public class QueryBuilder<T> {
         }
     }
 
-    /** Adds the given properties to the ORDER BY section using the given custom order. */
+    /**
+     * Adds the given properties to the ORDER BY section using the given custom order.
+     */
     public QueryBuilder<T> orderCustom(Property property, String customOrderForProperty) {
         checkOrderBuilder();
         append(orderBuilder, property).append(' ');
@@ -263,7 +278,9 @@ public class QueryBuilder<T> {
     }
 
 
-    /** Limits the number of results returned by queries. */
+    /**
+     * Limits the number of results returned by queries.
+     */
     public QueryBuilder<T> limit(int limit) {
         this.limit = limit;
         return this;
@@ -442,22 +459,6 @@ public class QueryBuilder<T> {
     @Experimental
     public Rx2Query<T> rx2Plain() {
         return build().__internalRx2Plain();
-    }
-
-    /**
-     * Shorthand for {@link QueryBuilder#build() build()}.{@link Query#__InternalRx()}.
-     */
-    @Experimental
-    public RxQuery<T> rx() {
-        return build().__InternalRx();
-    }
-
-    /**
-     * Shorthand for {@link QueryBuilder#build() build()}.{@link Query#__internalRxPlain()}.
-     */
-    @Experimental
-    public RxQuery<T> rxPlain() {
-        return build().__internalRxPlain();
     }
 
     /**

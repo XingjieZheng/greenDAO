@@ -20,15 +20,11 @@ import android.database.Cursor;
 import org.greenrobot.greendao.AbstractDao;
 import org.greenrobot.greendao.DaoException;
 import org.greenrobot.greendao.annotation.apihint.Internal;
-import org.greenrobot.greendao.rx.RxQuery;
-import org.greenrobot.greendao.rx.RxTransaction;
 import org.greenrobot.greendao.rx2.Rx2Query;
 import org.greenrobot.greendao.rx2.Rx2Transaction;
 
 import java.util.Date;
 import java.util.List;
-
-import rx.schedulers.Schedulers;
 
 /**
  * A repeatable query returning entities.
@@ -54,7 +50,9 @@ public class Query<T> extends AbstractQueryWithLimit<T> {
 
     }
 
-    /** For internal use by greenDAO only. */
+    /**
+     * For internal use by greenDAO only.
+     */
     public static <T2> Query<T2> internalCreate(AbstractDao<T2, ?> dao, String sql, Object[] initialValues) {
         return create(dao, sql, initialValues, -1, -1);
     }
@@ -67,9 +65,6 @@ public class Query<T> extends AbstractQueryWithLimit<T> {
     }
 
     private final QueryData<T> queryData;
-
-    private volatile RxQuery rxTxPlain;
-    private volatile RxQuery rxTxIo;
 
     private volatile Rx2Query rx2TxPlain;
     private volatile Rx2Query rx2TxIo;
@@ -87,7 +82,9 @@ public class Query<T> extends AbstractQueryWithLimit<T> {
         return queryData.forCurrentThread(this);
     }
 
-    /** Executes the query and returns the result as a list containing all entities loaded into memory. */
+    /**
+     * Executes the query and returns the result as a list containing all entities loaded into memory.
+     */
     public List<T> list() {
         checkThread();
         Cursor cursor = dao.getDatabase().rawQuery(sql, parameters);
@@ -166,40 +163,10 @@ public class Query<T> extends AbstractQueryWithLimit<T> {
 
     /**
      * DO NOT USE.
-     * The returned {@link RxTransaction} allows getting query results using Rx Observables without any Scheduler set
-     * for subscribeOn.
-     *
-     * @see #__InternalRx()
-     */
-    @Internal
-    public RxQuery __internalRxPlain() {
-        if (rxTxPlain == null) {
-            rxTxPlain = new RxQuery(this);
-        }
-        return rxTxPlain;
-    }
-
-    /**
-     * DO NOT USE.
-     * The returned {@link RxTransaction} allows getting query results using Rx Observables using RX's IO scheduler for
-     * subscribeOn.
-     *
-     * @see #__internalRxPlain()
-     */
-    @Internal
-    public RxQuery __InternalRx() {
-        if (rxTxIo == null) {
-            rxTxIo = new RxQuery(this, Schedulers.io());
-        }
-        return rxTxIo;
-    }
-
-    /**
-     * DO NOT USE.
      * The returned {@link Rx2Transaction} allows getting query results using Rx Observables without any Scheduler set
      * for subscribeOn.
-     *
-     * @see #__InternalRx()
+     * <p>
+     * //     * @see #__InternalRx()
      */
     @Internal
     public Rx2Query __internalRx2Plain() {
@@ -214,7 +181,7 @@ public class Query<T> extends AbstractQueryWithLimit<T> {
      * The returned {@link Rx2Transaction} allows getting query results using Rx Observables using RX's IO scheduler for
      * subscribeOn.
      *
-     * @see #__internalRxPlain()
+     * @see #__internalRx2Plain()
      */
     @Internal
     public Rx2Query __InternalRx2() {

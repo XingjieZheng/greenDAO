@@ -32,15 +32,12 @@ import org.greenrobot.greendao.internal.FastCursor;
 import org.greenrobot.greendao.internal.TableStatements;
 import org.greenrobot.greendao.query.Query;
 import org.greenrobot.greendao.query.QueryBuilder;
-import org.greenrobot.greendao.rx.RxDao;
 import org.greenrobot.greendao.rx2.Rx2Dao;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-
-import rx.schedulers.Schedulers;
 
 /**
  * Base class for all DAOs: Implements entity operations like insert, load, delete, and query.
@@ -53,11 +50,11 @@ import rx.schedulers.Schedulers;
  */
 /*
  * When operating on TX, statements, or identity scope the following locking order must be met to avoid deadlocks:
- * 
+ *
  * 1.) If not inside a TX already, begin a TX to acquire a DB connection (connection is to be handled like a lock)
- * 
+ *
  * 2.) The DatabaseStatement
- * 
+ *
  * 3.) identityScope
  */
 public abstract class AbstractDao<T, K> {
@@ -70,9 +67,6 @@ public abstract class AbstractDao<T, K> {
 
     protected final AbstractDaoSession session;
     protected final int pkOrdinal;
-
-    private volatile RxDao<T, K> rxDao;
-    private volatile RxDao<T, K> rxDaoPlain;
 
     private volatile Rx2Dao<T, K> rx2Dao;
     private volatile Rx2Dao<T, K> rx2DaoPlain;
@@ -176,13 +170,17 @@ public abstract class AbstractDao<T, K> {
         return loadCurrent(cursor, 0, true);
     }
 
-    /** Loads all available entities from the database. */
+    /**
+     * Loads all available entities from the database.
+     */
     public List<T> loadAll() {
         Cursor cursor = db.rawQuery(statements.getSelectAll(), null);
         return loadAllAndCloseCursor(cursor);
     }
 
-    /** Detaches an entity from the identity scope (session). Subsequent query results won't return this object. */
+    /**
+     * Detaches an entity from the identity scope (session). Subsequent query results won't return this object.
+     */
     public boolean detach(T entity) {
         if (identityScope != null) {
             K key = getKeyVerified(entity);
@@ -452,7 +450,9 @@ public abstract class AbstractDao<T, K> {
         }
     }
 
-    /** Reads all available rows from the given cursor and returns a list of entities. */
+    /**
+     * Reads all available rows from the given cursor and returns a list of entities.
+     */
     protected List<T> loadAllFromCursor(Cursor cursor) {
         int count = cursor.getCount();
         if (count == 0) {
@@ -532,7 +532,9 @@ public abstract class AbstractDao<T, K> {
         }
     }
 
-    /** Internal use only. Considers identity scope. */
+    /**
+     * Internal use only. Considers identity scope.
+     */
     final protected T loadCurrent(Cursor cursor, int offset, boolean lock) {
         if (identityScopeLong != null) {
             if (offset != 0) {
@@ -585,12 +587,16 @@ public abstract class AbstractDao<T, K> {
         }
     }
 
-    /** Internal use only. Considers identity scope. */
+    /**
+     * Internal use only. Considers identity scope.
+     */
     final protected <O> O loadCurrentOther(AbstractDao<O, ?> dao, Cursor cursor, int offset) {
         return dao.loadCurrent(cursor, offset, /* TODO check this */true);
     }
 
-    /** A raw-style query where you can pass any WHERE clause and arguments. */
+    /**
+     * A raw-style query where you can pass any WHERE clause and arguments.
+     */
     public List<T> queryRaw(String where, String... selectionArg) {
         Cursor cursor = db.rawQuery(statements.getSelectAll() + where, selectionArg);
         return loadAllAndCloseCursor(cursor);
@@ -623,14 +629,18 @@ public abstract class AbstractDao<T, K> {
         }
     }
 
-    /** Deletes the given entity from the database. Currently, only single value PK entities are supported. */
+    /**
+     * Deletes the given entity from the database. Currently, only single value PK entities are supported.
+     */
     public void delete(T entity) {
         assertSinglePk();
         K key = getKeyVerified(entity);
         deleteByKey(key);
     }
 
-    /** Deletes an entity with the given PK from the database. Currently, only single value PK entities are supported. */
+    /**
+     * Deletes an entity with the given PK from the database. Currently, only single value PK entities are supported.
+     */
     public void deleteByKey(K key) {
         assertSinglePk();
         DatabaseStatement stmt = statements.getDeleteStatement();
@@ -746,7 +756,9 @@ public abstract class AbstractDao<T, K> {
         deleteInTxInternal(null, Arrays.asList(keys));
     }
 
-    /** Resets all locally changed properties of the entity by reloading the values from the database. */
+    /**
+     * Resets all locally changed properties of the entity by reloading the values from the database.
+     */
     public void refresh(T entity) {
         assertSinglePk();
         K key = getKeyVerified(entity);
@@ -926,7 +938,9 @@ public abstract class AbstractDao<T, K> {
         return statements.getCountStatement().simpleQueryForLong();
     }
 
-    /** See {@link #getKey(Object)}, but guarantees that the returned key is never null (throws if null). */
+    /**
+     * See {@link #getKey(Object)}, but guarantees that the returned key is never null (throws if null).
+     */
     protected K getKeyVerified(T entity) {
         K key = getKey(entity);
         if (key == null) {
@@ -938,34 +952,6 @@ public abstract class AbstractDao<T, K> {
         } else {
             return key;
         }
-    }
-
-    /**
-     * The returned RxDao is a special DAO that let's you interact with Rx Observables without any Scheduler set
-     * for subscribeOn.
-     *
-     * @see #rx()
-     */
-    @Experimental
-    public RxDao<T, K> rxPlain() {
-        if (rxDaoPlain == null) {
-            rxDaoPlain = new RxDao<>(this);
-        }
-        return rxDaoPlain;
-    }
-
-    /**
-     * The returned RxDao is a special DAO that let's you interact with Rx Observables using RX's IO scheduler for
-     * subscribeOn.
-     *
-     * @see #rxPlain()
-     */
-    @Experimental
-    public RxDao<T, K> rx() {
-        if (rxDao == null) {
-            rxDao = new RxDao<>(this, Schedulers.io());
-        }
-        return rxDao;
     }
 
     /**
@@ -996,22 +982,32 @@ public abstract class AbstractDao<T, K> {
         return rx2Dao;
     }
 
-    /** Gets the SQLiteDatabase for custom database access. Not needed for greenDAO entities. */
+    /**
+     * Gets the SQLiteDatabase for custom database access. Not needed for greenDAO entities.
+     */
     public Database getDatabase() {
         return db;
     }
 
-    /** Reads the values from the current position of the given cursor and returns a new entity. */
+    /**
+     * Reads the values from the current position of the given cursor and returns a new entity.
+     */
     abstract protected T readEntity(Cursor cursor, int offset);
 
 
-    /** Reads the key from the current position of the given cursor, or returns null if there's no single-value key. */
+    /**
+     * Reads the key from the current position of the given cursor, or returns null if there's no single-value key.
+     */
     abstract protected K readKey(Cursor cursor, int offset);
 
-    /** Reads the values from the current position of the given cursor into an existing entity. */
+    /**
+     * Reads the values from the current position of the given cursor into an existing entity.
+     */
     abstract protected void readEntity(Cursor cursor, T entity, int offset);
 
-    /** Binds the entity's values to the statement. Make sure to synchronize the statement outside of the method. */
+    /**
+     * Binds the entity's values to the statement. Make sure to synchronize the statement outside of the method.
+     */
     abstract protected void bindValues(DatabaseStatement stmt, T entity);
 
     /**
@@ -1038,7 +1034,9 @@ public abstract class AbstractDao<T, K> {
      */
     abstract protected boolean hasKey(T entity);
 
-    /** Returns true if the Entity class can be updated, e.g. for setting the PK after insert. */
+    /**
+     * Returns true if the Entity class can be updated, e.g. for setting the PK after insert.
+     */
     abstract protected boolean isEntityUpdateable();
 
 }

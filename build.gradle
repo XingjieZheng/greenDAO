@@ -1,5 +1,5 @@
 // Sub projects may reference rootProject.version
-version = '3.2.3-SNAPSHOT'
+version = '3.2.3-Rxjava2-SNAPSHOT'
 
 task wrapper(type: Wrapper) {
     gradleVersion = '3.5'
@@ -15,9 +15,11 @@ ext {
 
     // common dependencies for Android projects (not to be used in example projects for better copy and paste)
     dep = [
-            androidPlugin: 'com.android.tools.build:gradle:2.3.1',
+            androidPlugin : 'com.android.tools.build:gradle:2.3.1',
             greendaoPlugin: 'org.greenrobot:greendao-gradle-plugin:3.2.2'
     ]
+
+    localMaven = 'D:/AndroidStudio/LocalMaven'
 }
 
 if (JavaVersion.current().isJava8Compatible()) {
@@ -59,6 +61,9 @@ subprojects {
         uploadArchives {
             repositories {
                 mavenDeployer {
+                    //电脑本地Maven仓库地址
+//                    repository(url: uri(rootProject.ext.localMaven))
+
                     def isSnapshot = version.endsWith('-SNAPSHOT')
                     def sonatypeRepositoryUrl = isSnapshot ?
                             "https://oss.sonatype.org/content/repositories/snapshots/"
